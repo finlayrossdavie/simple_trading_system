@@ -9,6 +9,8 @@ data = csvFuturesSimData()
 
 from systems.provided.rules.ewmac import ewmac_forecast_with_defaults as ewmac
 
+
+
 """
 Okay, I wonder how this would work for a number of instruments?
 

@@ -7,6 +7,10 @@ Work up a minimum example of a trend following system
 
 """
 
+import sys
+import os
+sys.path.insert(0, os.getcwd())
+
 # Get some data
 
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -25,7 +29,7 @@ print(data)
 We get stuff out of data with methods
 """
 print(data.get_instrument_list())
-print(data.get_raw_price("EDOLLAR").tail(5))
+print(data.get_raw_price("AUD").tail(5))
 """
 data can also behave in a dict like manner (though it's not a dict)
 """
@@ -49,7 +53,7 @@ We have extra futures data here
 
 """
 
-print(data.get_instrument_raw_carry_data("EDOLLAR").tail(6))
+print(data.get_instrument_raw_carry_data("AUD").tail(6))
 """
 Technical note: csvFuturesSimData inherits from FuturesData which itself inherits
 from simData
