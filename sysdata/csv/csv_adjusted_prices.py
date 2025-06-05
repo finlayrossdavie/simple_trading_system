@@ -28,8 +28,6 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         if datapath is arg_not_supplied:
             datapath = ADJUSTED_PRICES_DIRECTORY
 
-        print("DATAPATH", datapath)
-
         self._datapath = datapath
 
     def __repr__(self):
