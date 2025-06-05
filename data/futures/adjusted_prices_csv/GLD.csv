@@ -1,4 +1,4 @@
-Date,Open,High,Low,Close          Close price adjusted for splits.,Adj Close          Adjusted close price adjusted for splits and dividend and/or capital gain distributions.,Volume
+Date,Open,High,Low,Close          Close price adjusted for splits.,Adj Close,Volume
 "Jun 5, 2025",311.24,312.2,308.69,308.84,308.84,"4,589,323"
 "Jun 4, 2025",309.41,311.88,308.74,310.9,310.9,"7,448,900"
 "Jun 3, 2025",309.56,309.56,307.15,308.91,308.91,"9,315,100"
