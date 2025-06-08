@@ -62,7 +62,7 @@ class Portfolio:
     
     def backtest(self):
 
-        for i in range(800, len(self.prices)-300):
+        for i in range(800, len(self.prices)-1):
         
             current_price_gld = self.prices[self.configuration.asset1].iloc[i]
             current_price_gdx = self.prices[self.configuration.asset2].iloc[i]
