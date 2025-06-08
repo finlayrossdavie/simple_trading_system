@@ -5,9 +5,6 @@ import statsmodels.api as sm
 import os
 
 base_dir = os.getcwd()
-gdx_path = os.path.join(base_dir, "data", "futures", "adjusted_prices_csv", "GDX.csv")
-gld_path = os.path.join(base_dir, "data", "futures", "adjusted_prices_csv", "GLD.csv")
-
 
 prices = None
 

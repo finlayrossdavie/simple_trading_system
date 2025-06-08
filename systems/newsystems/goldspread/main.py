@@ -1,14 +1,11 @@
-from build.lib.syscore.interactive import display
 from config import Config
 from components import Portfolio
 from position import Position
 import utils
-
 import matplotlib.pyplot as plt
 import pandas as pd
 
 prices = utils.get_prices('GLD', 'GDX')
-
 portfolios = []
 thresholds = [(0.15, 0.25), (0.2, 0.3), (0.25, 0.35),
     (0.35, 0.45), (0.55, 0.65)
@@ -44,6 +41,3 @@ for portfolio in portfolios:
 # Create and display DataFrame
 results_df = pd.DataFrame(results)
 print(results_df)
-
-
-utils.get_prices('GLD', 'GDX')
