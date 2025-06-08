@@ -7,7 +7,7 @@ import utils
 import matplotlib.pyplot as plt
 import pandas as pd
 
-prices = utils.get_prices()
+prices = utils.get_prices('GLD', 'GDX')
 
 portfolios = []
 thresholds = [(0.15, 0.25), (0.2, 0.3), (0.25, 0.35),
@@ -44,3 +44,6 @@ for portfolio in portfolios:
 # Create and display DataFrame
 results_df = pd.DataFrame(results)
 print(results_df)
+
+
+utils.get_prices('GLD', 'GDX')
