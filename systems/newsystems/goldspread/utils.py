@@ -9,7 +9,6 @@ base_dir = os.getcwd()
 prices = None
 
 def initialize_prices(asset1, asset2):
-
     asset1_path = os.path.join(base_dir, "data", "futures", "adjusted_prices_csv", f"{asset1}.csv")
     asset2_path = os.path.join(base_dir, "data", "futures", "adjusted_prices_csv", f"{asset2}.csv")
 
@@ -18,7 +17,6 @@ def initialize_prices(asset1, asset2):
     
     a1 = pd.read_csv(asset1_path)    
     a2 = pd.read_csv(asset2_path)
-
 
     a1 = a1[['Date', 'Adj Close']]
     a2 = a2[['Date', 'Adj Close']]
@@ -40,7 +38,6 @@ def initialize_prices(asset1, asset2):
     prices['spread_mean'] = prices['spread'].rolling(200).mean()
     prices['spread_std'] = prices['spread'].rolling(200).std()
     prices['z_score'] = (prices['spread'] - prices['spread_mean']) / prices['spread_std']
-    
     
     prices.set_index('Date', inplace=True)
 
