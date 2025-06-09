@@ -28,8 +28,6 @@ class Position:
             return final_return
         else:
             return 0.0
-
-
     def close_position(self, date):
         self.open = False
         self.exit_date = date

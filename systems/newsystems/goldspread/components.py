@@ -35,7 +35,7 @@ class Portfolio:
         average_holding_period = np.mean(holding_periods) if holding_periods else 0
         return average_holding_period
     
-    def calcualte_sharpe_ratio(self, risk_free_rate=0.03):
+    def calcualte_sharpe_ratio(self):
         returns = []
         holding_periods_days = []
         for pos in self.positions:
@@ -48,27 +48,36 @@ class Portfolio:
         if len(returns) == 0:
             return 0
         
-        adjusted_risk_free_rates = [(1 + risk_free_rate)**(period / 365.0) - 1 for period in holding_periods_days]
+        adjusted_risk_free_rates = [(1 + self.configuration.risk_free_rate)**(period / 365.0) - 1 for period in holding_periods_days]
         excess_returns = np.array(returns) - np.array(adjusted_risk_free_rates)
 
         sharpe_ratio_per_trade = np.mean(excess_returns) / np.std(excess_returns)
   
-        total_years = (self.prices['Date'].iloc[-1] - self.prices['Date'].iloc[0]).days / 365.0
+        total_years = (self.prices.index[-1] - self.prices.index[0]).days / 365.0
         trades_per_year = len(returns) / total_years
         
         annualized_sharpe_ratio = sharpe_ratio_per_trade * np.sqrt(trades_per_year)
 
         return annualized_sharpe_ratio  
     
-    def backtest(self):
+    def backtest(self, start_date="2009-07-27", end_date="2025-06-05"):   #indexes 800 and n
 
-        for i in range(800, len(self.prices)-1):
+        if start_date not in self.prices.index or end_date not in self.prices.index:
+            raise ValueError("Start date or end date not found in prices")
+        
+        start = self.prices.index.get_loc(start_date)
+        end = self.prices.index.get_loc(end_date)
+
+        if start >= end:
+            raise ValueError("Start date must be before end date")
+
+        for i in range(start, end):
         
             current_price_gld = self.prices[self.configuration.asset1].iloc[i]
             current_price_gdx = self.prices[self.configuration.asset2].iloc[i]
             z_score = self.prices['z_score'].iloc[i]
             hedge_ratio = self.prices['hedge_ratio'].iloc[i]
-            date = self.prices['Date'].iloc[i]
+            date = self.prices.index[i]
 
             signal = goldspread_rule(z_score, self.configuration.entry_threshold, self.configuration.exit_threshold)
 

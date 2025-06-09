@@ -40,6 +40,10 @@ def initialize_prices(asset1, asset2):
     prices['spread_mean'] = prices['spread'].rolling(200).mean()
     prices['spread_std'] = prices['spread'].rolling(200).std()
     prices['z_score'] = (prices['spread'] - prices['spread_mean']) / prices['spread_std']
+    
+    
+    prices.set_index('Date', inplace=True)
+
 
 def get_prices(asset1, asset2):
     global prices

@@ -16,10 +16,10 @@ plt.figure(figsize=(12, 7))
 for i, (entry, exit) in enumerate(thresholds):
     config = Config(entry_threshold=entry, exit_threshold=exit, asset1='GLD', asset2='GDX', initial_capital=100000)
     portfolio = Portfolio(prices, config)
-    portfolio.backtest()
+    portfolio.backtest('2014-05-23', '2019-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
     pnl = [x.get_pnl() for x in portfolio.positions if isinstance(x, Position)]
     portfolios.append(portfolio)   
-    plt.plot(prices['Date'][800:800+len(pnl)], pnl, label=f'Entry={entry}, Exit={exit}')
+    plt.plot(prices.index[800:800+len(pnl)], pnl, label=f'Entry={entry}, Exit={exit}')
 
 
 plt.legend()
