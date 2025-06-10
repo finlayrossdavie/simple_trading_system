@@ -39,7 +39,7 @@ for portfolio in portfolios:
         "Exit Threshold": portfolio.configuration.exit_threshold,
         "Average Holding Period (days)": round(portfolio.get_average_holding(), 2),
         "Final Capital (£)": round(portfolio.capitial, 2),
-        "Sharpe Ratio": round(portfolio.calcualte_sharpe_ratio(), 2)
+        "Sharpe Ratio": round(portfolio.calculate_sharpe_ratio(), 2)
     })
 
 # Create and display DataFrame
