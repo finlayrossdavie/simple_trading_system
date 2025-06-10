@@ -7,8 +7,8 @@ import pandas as pd
 
 prices = utils.get_prices('GLD', 'GDX')
 portfolios = []
-thresholds = [(0.15, 0.25), (0.2, 0.3), (0.25, 0.35),
-    (0.35, 0.45), (0.55, 0.65)
+thresholds = [(0.25, 0.15), (0.3, 0.2), (0.35, 0.25),
+    (0.45, 0.35), (0.65, 0.55), 
 ]
 
 plt.figure(figsize=(12, 7))

@@ -79,29 +79,35 @@ class Portfolio:
             hedge_ratio = self.prices['hedge_ratio'].iloc[i]
             date = self.prices.index[i]
 
-            signal = goldspread_rule(z_score, self.configuration.entry_threshold, self.configuration.exit_threshold)
+            signal = goldspread_rule(z_score, self.configuration.entry_threshold, self.configuration.exit_threshold, self.current_position)
 
             if signal == -1:  # Short GLD, Long GDX
-                if self.current_position is None or not self.current_position.open:
+                if self.current_position is None or not self.current_position.direction == -1: # If not short go short
+                    if self.current_position: # If we have an open long, close it first
+                        self.close_position(current_price_gld, current_price_gdx, date)
                     gld_units, gdx_units = self.position_size(current_price_gld, current_price_gdx, hedge_ratio)
                     self.open_position(-1, gld_units, gdx_units, current_price_gld, current_price_gdx, date)
             
             elif signal == 1 :  # Long GLD, Short GD
-                if self.current_position is None or not self.current_position.open:
+                if self.current_position is None or not self.current_position.direction == 1: # If not long go long
+                    if self.current_position: # If we have an open short, close it first
+                        self.close_position(current_price_gld, current_price_gdx, date)
                     gld_units, gdx_units = self.position_size(current_price_gld, current_price_gdx, hedge_ratio)
                     self.open_position(1, gld_units, gdx_units, current_price_gld, current_price_gdx, date)
 
             elif signal == 0:  # Exit position
-                if self.current_position is not None and self.current_position.open:
+                if self.current_position is not None and self.current_position.open: # If flat do nothing
                     self.close_position(current_price_gld, current_price_gdx, date)
 
 
-def goldspread_rule(z_score, entry_threshold, exit_threshold): #0.2 and 0.3
+def goldspread_rule(z_score, entry_threshold, exit_threshold, current_position): #0.2 and 0.3
     if z_score > entry_threshold:
         return -1 # Short GLD, Long GDX
     elif z_score < -entry_threshold:
         return  1 # Long GLD, Short GDX
-    elif z_score < exit_threshold:
-        return 0 # exit position
+    elif current_position is not None and current_position.direction == 1 and z_score >= -exit_threshold:
+        return 0 # Exit long
+    elif current_position is not None and current_position.direction == -1 and z_score <= exit_threshold:
+        return 0 # Exit short
     else:
-        return -2 # hold position
+        return -2 # Hold position
