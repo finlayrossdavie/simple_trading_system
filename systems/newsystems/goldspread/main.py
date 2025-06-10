@@ -4,6 +4,7 @@ from position import Position
 import utils
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 
 prices = utils.get_prices('GLD', 'GDX')
 portfolios = []
@@ -23,9 +24,9 @@ for i, (entry, exit) in enumerate(thresholds):
     pnl = [(x.get_pnl()) for x in portfolio.positions if isinstance(x, Position)]
     close_dates = [x.exit_date for x in portfolio.positions if isinstance(x, Position)]
     portfolios.append(portfolio)   
+    cum_pnl = np.cumsum(pnl)
 
-
-    plt.plot(close_dates, pnl, label=f'Entry={entry}, Exit={exit}')
+    plt.plot(close_dates, cum_pnl, label=f'Entry={entry}, Exit={exit}')
 
 
 plt.legend()
