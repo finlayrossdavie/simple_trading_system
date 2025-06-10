@@ -31,12 +31,12 @@ def initialize_prices(asset1, asset2):
     prices.rename(columns={'Adj Close_x': asset1, 'Adj Close_y': asset2}, inplace=True)
     prices.sort_values(by='Date', inplace=True)
 
-    model = RollingOLS(prices[asset1], sm.add_constant(prices[asset2]), window=200)
+    model = RollingOLS(prices[asset1], sm.add_constant(prices[asset2]), window=100)
     results = model.fit()
     prices['hedge_ratio'] = results.params[asset2]
     prices['spread'] = prices[asset1] - prices['hedge_ratio'] * prices[asset2]
-    prices['spread_mean'] = prices['spread'].rolling(200).mean()
-    prices['spread_std'] = prices['spread'].rolling(200).std()
+    prices['spread_mean'] = prices['spread'].rolling(100).mean()
+    prices['spread_std'] = prices['spread'].rolling(100).std()
     prices['z_score'] = (prices['spread'] - prices['spread_mean']) / prices['spread_std']
     
     prices.set_index('Date', inplace=True)
