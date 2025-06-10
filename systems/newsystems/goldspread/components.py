@@ -35,7 +35,7 @@ class Portfolio:
         average_holding_period = np.mean(holding_periods) if holding_periods else 0
         return average_holding_period
     
-    def calcualte_sharpe_ratio(self):
+    def calculate_sharpe_ratio(self):
         returns = []
         holding_periods_days = []
         for pos in self.positions:
