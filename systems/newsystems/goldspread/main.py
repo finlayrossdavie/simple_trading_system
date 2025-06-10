@@ -7,8 +7,8 @@ import pandas as pd
 
 prices = utils.get_prices('GLD', 'GDX')
 portfolios = []
-thresholds = [(0.25, 0.15), (0.3, 0.2), (0.35, 0.25),
-    (0.45, 0.35), (0.65, 0.55), 
+thresholds = [(0.2, 0.1), (0.4, 0.2),
+              (0.8,0.4), (1.3, 0.7), (2,1)
 ]
 
 plt.figure(figsize=(12, 7))
@@ -17,7 +17,9 @@ for i, (entry, exit) in enumerate(thresholds):
 
     config = Config(entry_threshold=entry, exit_threshold=exit, asset1='GLD', asset2='GDX', initial_capital=100000)
     portfolio = Portfolio(prices, config)
-    portfolio.backtest('2014-05-23', '2019-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
+    # portfolio.backtest('2014-05-23', '2019-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
+    portfolio.backtest('2019-05-23', '2025-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
+
     pnl = [(x.get_pnl()) for x in portfolio.positions if isinstance(x, Position)]
     close_dates = [x.exit_date for x in portfolio.positions if isinstance(x, Position)]
     portfolios.append(portfolio)   
@@ -39,7 +41,8 @@ for portfolio in portfolios:
         "Exit Threshold": portfolio.configuration.exit_threshold,
         "Average Holding Period (days)": round(portfolio.get_average_holding(), 2),
         "Final Capital (£)": round(portfolio.capitial, 2),
-        "Sharpe Ratio": round(portfolio.calculate_sharpe_ratio(), 2)
+        "Sharpe Ratio": round(portfolio.calculate_sharpe_ratio(), 2),
+        "Total Positions": len(portfolio.positions)
     })
 
 # Create and display DataFrame
