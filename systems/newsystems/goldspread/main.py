@@ -35,13 +35,40 @@ plt.xlabel('Date')
 plt.ylabel('Trade PnL')
 plt.show()
 
+plt.figure(figsize=(12, 7))
+
+portfolio = portfolios[0]  # Use the first portfolio for z-score plotting
+
+
+plt.plot(portfolio.prices.index, portfolio.prices['z_score'], label=f'Entry={portfolio.configuration.entry_threshold}, Exit={portfolio.configuration.exit_threshold}')
+plt.axhline(y=portfolio.configuration.entry_threshold, color='r', linestyle='--', label='Entry Threshold')
+plt.axhline(y=portfolio.configuration.exit_threshold, color='g', linestyle='--', label='Exit Threshold')
+plt.axhline(y=-portfolio.configuration.exit_threshold, color='b', linestyle='--', label='Negative Exit Threshold')
+plt.axhline(y=-portfolio.configuration.entry_threshold, color='orange', linestyle='--', label='Negative Entry Threshold')
+
+plt.show()
+
+plt.figure(figsize=(12, 7))
+
+for portfolio in portfolios:
+    plt.plot(portfolio.daily_captial, label=f'Entry={portfolio.configuration.entry_threshold}, Exit={portfolio.configuration.exit_threshold}')
+plt.legend()
+plt.title('Portfolio Capital Over Time for Different Threshold Configurations')
+plt.xlabel('Days')
+plt.ylabel('Capital (£)')
+plt.show()
+
+
+
+
+
 results = []
 for portfolio in portfolios:
     results.append({
         "Entry Threshold": portfolio.configuration.entry_threshold,
         "Exit Threshold": portfolio.configuration.exit_threshold,
         "Average Holding Period (days)": round(portfolio.get_average_holding(), 2),
-        "Final Capital (£)": round(portfolio.capitial, 2),
+        "Final Capital (£)": round(portfolio.capital, 2),
         "Sharpe Ratio": round(portfolio.calculate_sharpe_ratio(), 2),
         "Total Positions": len(portfolio.positions)
     })
@@ -49,3 +76,5 @@ for portfolio in portfolios:
 # Create and display DataFrame
 results_df = pd.DataFrame(results)
 print(results_df)
+
+

@@ -9,6 +9,17 @@ class Position:
         self.exit_date = None
         self.pnl = 0.0
         self.open = True
+
+    def calculate_value(self, current_price_gld, current_price_gdx):
+        value_gld = current_price_gld * self.gld_units
+        value_gdx = current_price_gdx * self.gdx_units
+
+        if self.direction == -1:
+            return value_gdx - value_gld  # Short spread: GDX - GLD
+        else:
+            return value_gld - value_gdx
+    
+        
     
     def calculate_pnl(self,current_price_gld, current_price_gdx):  
         if self.direction == -1:   #short spread

@@ -4,31 +4,41 @@ import numpy as np
 class Portfolio:
     def __init__(self, prices, config):
         self.positions = []
-        self.capitial = config.initial_capital
+        self.capital = config.initial_capital
         self.running_pnl = 0.0
         self.prices = prices
         self.current_position = None
         self.configuration = config
+        self.cash = config.initial_capital
+        self.daily_captial = []
 
     def position_size(self, current_price_gld, current_price_gdx,hedge_ratio):
         effective_unit_cost = current_price_gld + (hedge_ratio * current_price_gdx)
-        gld_units = self.capitial // effective_unit_cost
+        gld_units = self.capital // effective_unit_cost
         gdx_units = gld_units * hedge_ratio
 
         return int(gld_units), int(gdx_units)
+    
+    def update_capital(self, current_price_gld, current_price_gdx):
+        if self.current_position and self.current_position.open:
+            value = self.current_position.calculate_value(current_price_gld, current_price_gdx)
+            self.capital = self.cash + value
         
+            
     def open_position(self, direction ,gld_units, gdx_units, entry_price_gld, entry_price_gdx, date):
         if self.current_position is not None and self.current_position.open:
             raise Exception("Cannot open a new position while another is open.")
         self.current_position = Position(direction, gld_units, gdx_units, entry_price_gld, entry_price_gdx, date)
         self.positions.append(self.current_position)
+        self.cash -= self.current_position.calculate_value(entry_price_gld, entry_price_gdx)
 
     def close_position(self, current_price_gld, current_price_gdx, date):
         pnl = self.current_position.calculate_pnl(current_price_gld, current_price_gdx)
+        self.cash += self.current_position.calculate_value(current_price_gld, current_price_gdx)
         self.running_pnl += pnl
-        self.capitial += pnl
         self.current_position.close_position(date)
         self.current_position = None
+        
 
     def get_average_holding(self):
         holding_periods = [(x.exit_date - x.entry_date).days for x in self.positions if isinstance(x, Position) and x.exit_date is not None]
@@ -98,6 +108,9 @@ class Portfolio:
             elif signal == 0:  # Exit position
                 if self.current_position is not None and self.current_position.open: # If flat do nothing
                     self.close_position(current_price_gld, current_price_gdx, date)
+
+            self.update_capital(current_price_gld, current_price_gdx)
+            self.daily_captial.append(self.capital)
 
 
 def goldspread_rule(z_score, entry_threshold, exit_threshold, current_position): #0.2 and 0.3
