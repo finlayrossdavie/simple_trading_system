@@ -1,5 +1,6 @@
 from position import Position
 import numpy as np
+import pandas as pd
 
 class Portfolio:
     def __init__(self, prices, config):
@@ -10,7 +11,8 @@ class Portfolio:
         self.current_position = None
         self.configuration = config
         self.cash = config.initial_capital
-        self.daily_captial = []
+        self.daily_capital = pd.Series(dtype=float) 
+        self.daily_drawdown = pd.Series(dtype=float)
 
     def position_size(self, current_price_gld, current_price_gdx,hedge_ratio):
         effective_unit_cost = current_price_gld + (hedge_ratio * current_price_gdx)
@@ -25,15 +27,13 @@ class Portfolio:
             self.capital = self.cash + value
 
     def calculate_max_drawdown(self):
-        capital = np.array(self.daily_captial)
-        running_max = np.maximum.accumulate(capital)
+        capital = self.daily_capital
+        running_max = capital.cummax()
         drawdown = (running_max - capital) / running_max
-        max_drawdown = np.max(drawdown)
+        self.daily_drawdown = drawdown
 
-        return max_drawdown
+        return drawdown.max()
 
-
-        
     def open_position(self, direction ,gld_units, gdx_units, entry_price_gld, entry_price_gdx, date):
         if self.current_position is not None and self.current_position.open:
             raise Exception("Cannot open a new position while another is open.")
@@ -48,6 +48,17 @@ class Portfolio:
         self.current_position.close_position(date)
         self.current_position = None
         
+    def calculate_monthly_returns(self):
+        # Resample to month-end and calculate percentage change
+        monthly_capital = self.daily_capital.resample('M').last()
+        monthly_returns = monthly_capital.pct_change().dropna()
+        return monthly_returns
+    
+    def calculate_yearly_returns(self):
+        # Resample to year-end and calculate percentage change
+        yearly_capital = self.daily_capital.resample('Y').last()
+        yearly_returns = yearly_capital.pct_change().dropna()
+        return yearly_returns
 
     def get_average_holding(self):
         holding_periods = [(x.exit_date - x.entry_date).days for x in self.positions if isinstance(x, Position) and x.exit_date is not None]
@@ -119,7 +130,15 @@ class Portfolio:
                     self.close_position(current_price_gld, current_price_gdx, date)
 
             self.update_capital(current_price_gld, current_price_gdx)
-            self.daily_captial.append(self.capital)
+            self.daily_capital.at[date] = self.capital
+
+    def calculate_winning_trades(self):
+        winning_trades = 0
+        for position in self.positions:
+            if not position.open and position.get_pnl() > 0:
+                winning_trades+=1
+        
+        return winning_trades/ len(self.positions) if self.positions else 0
 
 
 def goldspread_rule(z_score, entry_threshold, exit_threshold, current_position): #0.2 and 0.3
@@ -133,3 +152,5 @@ def goldspread_rule(z_score, entry_threshold, exit_threshold, current_position):
         return 0 # Exit short
     else:
         return -2 # Hold position
+
+

@@ -12,67 +12,98 @@ thresholds = [(0.2, 0.1), (0.4, 0.2),
               (0.8,0.4), (1.3, 0.7), (2,1)
 ]
 
-plt.figure(figsize=(12, 7))
-
-for i, (entry, exit) in enumerate(thresholds):
-
-    config = Config(entry_threshold=entry, exit_threshold=exit, asset1='GLD', asset2='GDX', initial_capital=100000)
-    portfolio = Portfolio(prices, config)
-    # portfolio.backtest('2014-05-23', '2019-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
-    portfolio.backtest('2019-05-23', '2025-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
-
-    pnl = [(x.get_pnl()) for x in portfolio.positions if isinstance(x, Position)]
-    close_dates = [x.exit_date for x in portfolio.positions if isinstance(x, Position)]
-    portfolios.append(portfolio)   
-    cum_pnl = np.cumsum(pnl)
-
-    plt.plot(close_dates, cum_pnl, label=f'Entry={entry}, Exit={exit}')
+entry = 1.3 
+exit = 0.2
 
 
-plt.legend()
-plt.title('Trade PnL for 5 Different Threshold Configurations')
-plt.xlabel('Date')
-plt.ylabel('Trade PnL')
+fig = plt.figure(figsize=(15, 12))
+gs = plt.GridSpec(3, 2, height_ratios=[1, 0.7, 1.1], width_ratios=[1.3, 1])
+
+
+config = Config(entry_threshold=entry, exit_threshold=exit, asset1='GLD', asset2='GDX', initial_capital=100000)
+portfolio = Portfolio(prices, config)
+portfolio.backtest('2019-05-23', '2025-05-23') #just testing a recent pre-covid 5 year, leave empty to backtest the full dataset
+
+ax1 = fig.add_subplot(gs[0, 0])
+ax1.plot(portfolio.daily_capital.index, portfolio.daily_capital.values, label='Capital (£)', color='blue')
+ax1.set_title('Portfolio Capital Over Time')
+ax1.set_xlabel('Days')
+ax1.set_ylabel('Capital (£)')
+ax1.grid(True)
+
+
+max_drawdown = portfolio.calculate_max_drawdown()
+
+ax2 = fig.add_subplot(gs[1, 0], sharex=ax1)
+ax2.fill_between(portfolio.daily_drawdown.index, -portfolio.daily_drawdown.values, 0, color='red', alpha=0.4)
+ax2.set_title("Drawdown (%)")
+ax2.set_ylabel("Drawdown")
+ax2.grid(True)
+
+
+
+monthly_returns = portfolio.calculate_monthly_returns()
+monthly_returns_df = monthly_returns.to_frame(name='return')
+monthly_returns_df['Year'] = monthly_returns_df.index.year
+monthly_returns_df['Month'] = monthly_returns_df.index.month
+
+heatmap_data = monthly_returns_df.pivot(index='Year', columns='Month', values='return')
+heatmap_data = heatmap_data.reindex(columns=range(1, 13))
+
+# Plot heatmap in the third row of the GridSpec
+ax3 = fig.add_subplot(gs[2, 0])
+c = ax3.imshow(heatmap_data, aspect='auto', cmap='RdYlGn', vmin=-0.2, vmax=0.2)
+
+# Set axis labels for heatmap
+ax3.set_xticks(np.arange(12))
+ax3.set_xticklabels(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+ax3.set_yticks(np.arange(len(heatmap_data.index)))
+ax3.set_yticklabels(heatmap_data.index)
+
+# Annotate cells with return values
+for i in range(len(heatmap_data.index)):
+    for j in range(12):
+        val = heatmap_data.iloc[i, j]
+        if not np.isnan(val):
+            ax3.text(j, i, f"{val:.1%}", ha='center', va='center', color='black', fontsize=8)
+
+ax3.set_title("Portfolio Monthly Returns Heatmap")
+ax3.set_xlabel("Month")
+ax3.set_ylabel("Year")
+fig.colorbar(c, ax=ax3, label="Monthly Return")
+ax3.grid(False)
+
+yearly_returns = portfolio.calculate_yearly_returns()
+
+ax4 = fig.add_subplot(gs[0, 1])
+ax4.bar(yearly_returns.index.year, yearly_returns.values, color='dodgerblue')
+ax4.set_title("Yearly Returns (%)")
+ax4.set_ylabel("Return")
+ax4.grid(True, axis='y')
+
+
+ax5 = fig.add_subplot(gs[1:, 1])
+ax5.axis("off")
+summary_stats = {
+    "Total Return": f"{(portfolio.daily_capital.iloc[-1]/portfolio.daily_capital.iloc[0])*100:.1f}%",
+    "Sharpe Ratio": f"{portfolio.calculate_sharpe_ratio():.2f}",
+    "Max Drawdown": f"{-max_drawdown*100:.2f}%",
+    "Average Holding Period ": f"{portfolio.get_average_holding():.2f} days",
+    "Total Number of Positions": len(portfolio.positions),
+    "Final Capital (£)": round(portfolio.capital, 2),
+    "Winning Trades ": f"{portfolio.calculate_winning_trades() * 100:.2f}%",
+    "Best Month": f"{monthly_returns.max()*100:.2f}%",
+    "Worst Month": f"{monthly_returns.min()*100:.2f}%"
+}
+table_data = [[k, v] for k, v in summary_stats.items()]
+table = ax5.table(cellText=table_data, colLabels=["Metric", "Value"], loc="center")
+table.auto_set_font_size(False)
+table.set_fontsize(10)
+table.scale(1.2, 1.2)
+ax5.set_title("Performance Summary", pad=20)
+
+
+plt.tight_layout()
 plt.show()
-
-plt.figure(figsize=(12, 7))
-
-portfolio = portfolios[0]  # Use the first portfolio for z-score plotting
-
-
-plt.plot(portfolio.prices.index, portfolio.prices['z_score'], label=f'Entry={portfolio.configuration.entry_threshold}, Exit={portfolio.configuration.exit_threshold}')
-plt.axhline(y=portfolio.configuration.entry_threshold, color='r', linestyle='--', label='Entry Threshold')
-plt.axhline(y=portfolio.configuration.exit_threshold, color='g', linestyle='--', label='Exit Threshold')
-plt.axhline(y=-portfolio.configuration.exit_threshold, color='b', linestyle='--', label='Negative Exit Threshold')
-plt.axhline(y=-portfolio.configuration.entry_threshold, color='orange', linestyle='--', label='Negative Entry Threshold')
-
-plt.show()
-
-plt.figure(figsize=(12, 7))
-
-for portfolio in portfolios:
-    plt.plot(portfolio.daily_captial, label=f'Entry={portfolio.configuration.entry_threshold}, Exit={portfolio.configuration.exit_threshold}')
-plt.legend()
-plt.title('Portfolio Capital Over Time for Different Threshold Configurations')
-plt.xlabel('Days')
-plt.ylabel('Capital (£)')
-plt.show()
-
-
-results = []
-for portfolio in portfolios:
-    results.append({
-        "Entry Threshold": portfolio.configuration.entry_threshold,
-        "Exit Threshold": portfolio.configuration.exit_threshold,
-        "Average Holding Period (days)": round(portfolio.get_average_holding(), 2),
-        "Final Capital (£)": round(portfolio.capital, 2),
-        "Sharpe Ratio": round(portfolio.calculate_sharpe_ratio(), 2),
-        "Total Positions": len(portfolio.positions),
-        "Max-Drawdown": round(portfolio.calculate_max_drawdown(), 2),
-    })
-
-# Create and display DataFrame
-results_df = pd.DataFrame(results)
-print(results_df)
 
 
