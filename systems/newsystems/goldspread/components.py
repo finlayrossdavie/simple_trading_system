@@ -23,8 +23,17 @@ class Portfolio:
         if self.current_position and self.current_position.open:
             value = self.current_position.calculate_value(current_price_gld, current_price_gdx)
             self.capital = self.cash + value
+
+    def calculate_max_drawdown(self):
+        capital = np.array(self.daily_captial)
+        running_max = np.maximum.accumulate(capital)
+        drawdown = (running_max - capital) / running_max
+        max_drawdown = np.max(drawdown)
+
+        return max_drawdown
+
+
         
-            
     def open_position(self, direction ,gld_units, gdx_units, entry_price_gld, entry_price_gdx, date):
         if self.current_position is not None and self.current_position.open:
             raise Exception("Cannot open a new position while another is open.")
@@ -44,7 +53,7 @@ class Portfolio:
         holding_periods = [(x.exit_date - x.entry_date).days for x in self.positions if isinstance(x, Position) and x.exit_date is not None]
         average_holding_period = np.mean(holding_periods) if holding_periods else 0
         return average_holding_period
-    
+
     def calculate_sharpe_ratio(self):
         returns = []
         holding_periods_days = []

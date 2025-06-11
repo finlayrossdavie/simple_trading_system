@@ -59,9 +59,6 @@ plt.ylabel('Capital (£)')
 plt.show()
 
 
-
-
-
 results = []
 for portfolio in portfolios:
     results.append({
@@ -70,7 +67,8 @@ for portfolio in portfolios:
         "Average Holding Period (days)": round(portfolio.get_average_holding(), 2),
         "Final Capital (£)": round(portfolio.capital, 2),
         "Sharpe Ratio": round(portfolio.calculate_sharpe_ratio(), 2),
-        "Total Positions": len(portfolio.positions)
+        "Total Positions": len(portfolio.positions),
+        "Max-Drawdown": round(portfolio.calculate_max_drawdown(), 2),
     })
 
 # Create and display DataFrame
